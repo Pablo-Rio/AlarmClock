@@ -2,11 +2,13 @@ import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { getCookieBoolean, setCookie } from './helpers/cookie';
+import Time from './Time';
 
 export default class Demo {
 	private renderer!: THREE.WebGLRenderer;
 	private scene!: THREE.Scene;
 	private camera!: THREE.PerspectiveCamera;
+  private time: Time;
 
 	private lightAmbient!: THREE.AmbientLight;
 	private lightPoint!: THREE.PointLight;
@@ -17,7 +19,10 @@ export default class Demo {
 	private cube!: THREE.Mesh;
 	private plane!: THREE.Mesh;
 
-	constructor() {
+  private textureCanvas!: THREE.CanvasTexture;
+
+	constructor(time: Time) {
+    this.time = time;
 		this.initScene();
 		this.initStats();
 		this.initListeners();
@@ -55,6 +60,7 @@ export default class Demo {
 
 	initScene() {
 		this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0xffffff);
 
 		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 		this.camera.position.z = 5;
@@ -103,16 +109,25 @@ export default class Demo {
 		const materialBox = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
 		this.cube = new THREE.Mesh(geometryBox, materialBox);
 		this.cube.castShadow = true;
-		this.scene.add(this.cube);
+		this.scene.add(this.cube); 
 
-		// Add a plane
-		const geometryPlane = new THREE.PlaneBufferGeometry(6, 6, 1, 1);
-		const materialPlane = new THREE.MeshPhongMaterial({ color: 0x666666 });
+		// Add a plane with canvas texture
+    console.log(this.time.getContext()?.canvas);
+    
+		const geometryPlane = new THREE.PlaneGeometry(5, 3);
+    this.textureCanvas = new THREE.CanvasTexture(this.time.getContext()?.canvas as HTMLCanvasElement);
+		const materialPlane = new THREE.MeshBasicMaterial({
+      map: this.textureCanvas,
+      alphaMap: this.textureCanvas,
+  });
 
 		this.plane = new THREE.Mesh(geometryPlane, materialPlane);
-		this.plane.position.z = -2;
-		this.plane.receiveShadow = true;
+		this.plane.position.z = -1;
 		this.scene.add(this.plane);
+
+    // Ambient light
+    const lightAmbient = new THREE.AmbientLight(0x404040);
+    this.scene.add(lightAmbient);
 
 		// Init animation
 		this.animate();
@@ -159,6 +174,8 @@ export default class Demo {
 
 		this.cube.rotation.x += 0.01;
 		this.cube.rotation.y += 0.01;
+
+    this.textureCanvas.needsUpdate = true;
 
 		if (this.stats) this.stats.update();
 
