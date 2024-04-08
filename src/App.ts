@@ -1,18 +1,30 @@
 import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { getCookieBoolean, setCookie } from "./helpers/cookie";
 import Time from "./Time";
 import { loadModel } from "./glbImport";
+import { addLights } from "./lights";
+import { createCubeMap } from "./component/cubeMap";
+
+const hemiLuminousIrradiances = {
+  "0.0001 lx (Moonless Night)": 0.0001,
+  "0.002 lx (Night Airglow)": 0.002,
+  "0.5 lx (Full Moon)": 0.5,
+  "3.4 lx (City Twilight)": 3.4,
+  "50 lx (Living Room)": 50,
+  "100 lx (Very Overcast)": 100,
+  "350 lx (Office Room)": 350,
+  "400 lx (Sunrise/Sunset)": 400,
+  "1000 lx (Overcast)": 1000,
+  "18000 lx (Daylight)": 18000,
+  "50000 lx (Direct Sun)": 50000,
+};
 
 export default class App {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private time: Time;
-
-  private lightAmbient!: THREE.AmbientLight;
-  private lightPoint!: THREE.PointLight;
 
   private controls!: OrbitControls;
   private stats!: any;
@@ -23,7 +35,7 @@ export default class App {
 
   constructor(time: Time) {
     THREE.Cache.enabled = true;
-    
+
     this.time = time;
     this.initScene();
     this.initStats();
@@ -33,44 +45,45 @@ export default class App {
   initStats() {
     this.stats = new (Stats as any)();
     document.body.appendChild(this.stats.dom);
-    const cookieName = "debug";
+
+    const itemName = "stats_debug";
 
     const fpsButton = document.getElementById("fps");
     if (!fpsButton) throw new Error("FPS button not found");
-    // Récupère le cookie stats_debug
-    let statsDebug = getCookieBoolean(cookieName);
+
+    let statsDebug = localStorage.getItem(itemName);
     if (statsDebug === null) {
-      setCookie(cookieName, "false");
-      statsDebug = false;
+      localStorage.setItem(itemName, "false");
     }
-    const displayStatsWithCookie = (bool: boolean) => {
-      if (bool) {
+    const displayStatsWithLS = (bool: string | null) => {
+      if (statsDebug === "true") {
         this.stats.dom.style.display = "block";
-        setCookie(cookieName, "true");
+        localStorage.setItem(itemName, "true");
       } else {
         this.stats.dom.style.display = "none";
-        setCookie(cookieName, "false");
+        localStorage.setItem(itemName, "false");
       }
     };
-    displayStatsWithCookie(statsDebug);
+    displayStatsWithLS(statsDebug);
 
     fpsButton.addEventListener("click", () => {
-      statsDebug = !statsDebug;
-      displayStatsWithCookie(statsDebug);
+      statsDebug === "true" ? (statsDebug = "false") : (statsDebug = "true");
+      displayStatsWithLS(statsDebug);
     });
   }
 
   async initScene() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xffffff);
+    addLights(this.scene);
 
     this.camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000
+      1000,
     );
-    this.camera.position.z = 5;
+    this.camera.position.set(3.5, 3.2, 1.5);
+    this.camera.lookAt(0, 1, 0);
 
     const canvas = document.getElementById("webgl");
     if (!canvas) throw new Error("Canvas not found");
@@ -79,62 +92,37 @@ export default class App {
       canvas: canvas,
     });
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.setPixelRatio(window.devicePixelRatio * 0.95);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor(0xffff00, 1);
+    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+    this.renderer.toneMapping = THREE.ReinhardToneMapping;
+    this.renderer.toneMappingExposure = 1;
+    
+    const cubeMap = await createCubeMap(this.scene, "./background/");
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
-    this.lightAmbient = new THREE.AmbientLight(0xffffff, 0.5);
-    this.scene.add(this.lightAmbient);
-
-    // Add a point light to add shadows
-    const shadowIntensity = 0.25;
-
-    this.lightPoint = new THREE.PointLight(0xffffff);
-    this.lightPoint.position.set(-0.5, 0.5, 4);
-    this.lightPoint.castShadow = true;
-    this.lightPoint.intensity = shadowIntensity;
-    // this.scene.add(this.lightPoint);
-
-    const lightPoint2 = this.lightPoint.clone();
-    lightPoint2.intensity = 1 - shadowIntensity;
-    lightPoint2.castShadow = false;
-    // this.scene.add(lightPoint2);
-
-    const mapSize = 1024; // Default 512
-    const cameraNear = 0.5; // Default 0.5
-    const cameraFar = 500; // Default 500
-    this.lightPoint.shadow.mapSize.width = mapSize;
-    this.lightPoint.shadow.mapSize.height = mapSize;
-    this.lightPoint.shadow.camera.near = cameraNear;
-    this.lightPoint.shadow.camera.far = cameraFar;
-
     // import glb
-    const model = await loadModel("models/reveil.glb");
+    const model = await loadModel("models/reveil.glb", cubeMap);
     this.scene.add(model);
 
     const pointHeure =
       model.getObjectByName("pointHeure") ?? new THREE.Object3D();
 
     this.textureCanvas = new THREE.CanvasTexture(
-      this.time.getContext()?.canvas as HTMLCanvasElement
+      this.time.getContext()?.canvas as HTMLCanvasElement,
     );
     this.plane = new THREE.Mesh(
       new THREE.PlaneGeometry(0.7, 0.35),
       new THREE.MeshBasicMaterial({
         map: this.textureCanvas,
         alphaMap: this.textureCanvas,
-      })
+      }),
     );
     this.plane.position.copy(pointHeure.position);
     this.plane.rotation.copy(pointHeure.rotation);
     this.scene.add(this.plane);
-
-    // Ambient light
-    const lightAmbient = new THREE.AmbientLight(0xffffff, 0.1);
-    this.scene.add(lightAmbient);
 
     // Init animation
     this.animate();
@@ -155,7 +143,7 @@ export default class App {
           const src = domElement.toDataURL();
           if (!win) return;
           win.document.write(
-            `<img src='${src}' width='${domElement.width}' height='${domElement.height}'>`
+            `<img src='${src}' width='${domElement.width}' height='${domElement.height}'>`,
           );
           break;
 
