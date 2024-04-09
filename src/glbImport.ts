@@ -1,7 +1,7 @@
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import * as THREE from "three";
 
-export function loadModel(modelPath: string, cubeMap): Promise<THREE.Object3D> {
+export function loadModel(modelPath: string, cubeMap: THREE.CubeTexture): Promise<THREE.Object3D> {
   return new Promise((resolve, reject) => {
     const loader = new GLTFLoader();
     loader.load(
@@ -10,7 +10,6 @@ export function loadModel(modelPath: string, cubeMap): Promise<THREE.Object3D> {
         const model = gltf.scene;
         model.traverse((o) => {
           if ((o as THREE.Mesh).isMesh) {
-            o = o as THREE.Mesh;
             o.castShadow = true;
             o.receiveShadow = true;
             o.material.needsUpdate = true;

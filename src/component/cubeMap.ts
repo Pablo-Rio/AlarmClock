@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export function createCubeMap(scene: THREE.Scene, path: string) {
+export function createCubeMap(scene: THREE.Scene, path: string): Promise<THREE.CubeTexture> {
   return new Promise((resolve) => {
     const xpositive = path + "0004.png"; // left
     const xnegative = path + "0002.png"; // right
@@ -9,7 +9,8 @@ export function createCubeMap(scene: THREE.Scene, path: string) {
     const zpositive = path + "0003.png"; // back
     const znegative = path + "0001.png"; // front
     const cubeTextureLoader = new THREE.CubeTextureLoader();
-    scene.background = cubeTextureLoader.load([
+
+    const cubeMap = cubeTextureLoader.load([
       xpositive,
       xnegative,
       ypositive,
@@ -17,6 +18,7 @@ export function createCubeMap(scene: THREE.Scene, path: string) {
       zpositive,
       znegative,
     ]);
-    resolve(scene.background);
+    scene.background = cubeMap;
+    resolve(cubeMap);
   });
 }

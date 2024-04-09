@@ -1,23 +1,37 @@
 import * as THREE from "three";
 
+const MILLISECONDS_IN_A_DAY = 86400000;
+
+let pointLight, helper;
+
 export function addLights(scene: THREE.Scene) {
-  const lightAmbient = new THREE.AmbientLight(0xffffff, 3);
+  const lightAmbient = new THREE.AmbientLight(0xffffff, 0);
   scene.add(lightAmbient);
 
-  const pointLight = new THREE.SpotLight(0xffffff, 6);
+  pointLight = new THREE.SpotLight(0xffffff, 2000);
   pointLight.position.set(0, 8, 10);
-  pointLight.target.position.set(0, 0, 0);
+  pointLight.target.position.set(-1.75, 5, 4);
   pointLight.castShadow = true;
   pointLight.shadow.mapSize.width = 1024;
   pointLight.shadow.mapSize.height = 1024;
   pointLight.shadow.bias = -0.0005;
-  pointLight.shadow.radius = 10;
+  pointLight.shadow.radius = 3;
   pointLight.shadow.blurSamples = 50;
-
   scene.add(pointLight);
 
-  const helper = new THREE.SpotLightHelper(pointLight);
+  helper = new THREE.SpotLightHelper(pointLight);
   scene.add(helper);
+
+  const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x080820, 20);
+  scene.add(hemisphereLight);
+
+  const axeHelper = new THREE.AxesHelper(5);
+  axeHelper.position.set(-1.75, 5, 4);
+  scene.add(axeHelper);
+
+  setInterval(() => {
+    lightsLoop();
+  }, 100);
 
   /* const nightPointLight = new THREE.PointLight(0xffffff, 1, 100, 1);
   nightPointLight.power = 10;
@@ -45,3 +59,18 @@ export function addLights(scene: THREE.Scene) {
   lightPoint.shadow.camera.near = cameraNear;
   lightPoint.shadow.camera.far = cameraFar; */
 }
+
+function lightsLoop() {
+  const period = MILLISECONDS_IN_A_DAY;
+  const speed = 2 * Math.PI / period;
+
+  pointLight.position.y = Math.sin(Date.now() * speed) * 7 + 5;
+  pointLight.position.x = Math.cos(Date.now() * -speed) * 6;
+  pointLight.position.z = Math.sin(Date.now() * speed) * 2 + 10;
+
+  pointLight.intensity = Math.max(0, pointLight.position.y - 5) * 500;
+
+  helper.update();
+}
+
+
