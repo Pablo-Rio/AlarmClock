@@ -30,7 +30,7 @@ export default class Time {
 
     let fontLoad = new FontFace(
       "frozencrystal",
-      "url(./fonts/frozencrystal.woff2)"
+      "url(./fonts/frozencrystal.woff2)",
     );
     fontLoad.load().then((font) => {
       (document.fonts as any).add(font);
@@ -54,7 +54,7 @@ export default class Time {
     this.ctx.fillText(
       hourFirstDigit,
       DISTANCE_FROM_LEFT + this.fixPosition(hourFirstDigit),
-      DISTANCE_FROM_TOP
+      DISTANCE_FROM_TOP,
     );
     this.ctx.fillText(
       hourSecondDigit,
@@ -62,7 +62,7 @@ export default class Time {
         WIDTH_OF_DIGIT +
         DISTANCE_BETWEEN_DIGITS +
         this.fixPosition(hourSecondDigit),
-      DISTANCE_FROM_TOP
+      DISTANCE_FROM_TOP,
     );
     if (this.time.getSeconds() % 2 === 0) {
       this.ctx.fillText(
@@ -71,7 +71,7 @@ export default class Time {
           2 * WIDTH_OF_DIGIT +
           DISTANCE_BETWEEN_COLONS_L +
           DISTANCE_BETWEEN_DIGITS,
-        DISTANCE_FROM_TOP
+        DISTANCE_FROM_TOP,
       );
     }
     this.ctx.fillText(
@@ -83,7 +83,7 @@ export default class Time {
         DISTANCE_BETWEEN_DIGITS +
         WIDTH_OF_COLON +
         this.fixPosition(minuteFirstDigit),
-      DISTANCE_FROM_TOP
+      DISTANCE_FROM_TOP,
     );
     this.ctx.fillText(
       minuteSecondDigit,
@@ -94,7 +94,7 @@ export default class Time {
         2 * DISTANCE_BETWEEN_DIGITS +
         WIDTH_OF_COLON +
         this.fixPosition(minuteSecondDigit),
-      DISTANCE_FROM_TOP
+      DISTANCE_FROM_TOP,
     );
 
     setTimeout(() => this.updateTime(), 1000);

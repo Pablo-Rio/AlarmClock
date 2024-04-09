@@ -19,7 +19,10 @@ export function loadModel(modelPath: string, cubeMap): Promise<THREE.Object3D> {
               (o.material as THREE.MeshStandardMaterial).color.addScalar(0);
             } */
 
-            if (!o.material.name.startsWith("IMG") && !o.material.name.startsWith("ALPHA")) {
+            if (
+              !o.material.name.startsWith("IMG") &&
+              !o.material.name.startsWith("ALPHA")
+            ) {
               o.material = new THREE.MeshPhongMaterial({
                 color: o.material.color,
                 envMap: cubeMap,

@@ -98,7 +98,7 @@ export default class App {
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
     this.renderer.toneMapping = THREE.ReinhardToneMapping;
     this.renderer.toneMappingExposure = 1;
-    
+
     const cubeMap = await createCubeMap(this.scene, "./background/");
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
