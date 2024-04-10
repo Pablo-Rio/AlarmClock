@@ -1,6 +1,10 @@
 import * as THREE from "three";
-
-const MILLISECONDS_IN_A_DAY = 86400000;
+import { MILLISECONDS_IN_A_DAY } from "./helpers/value";
+import {
+  currentTimePercentageOfDay,
+  timeToMilliseconds,
+  timeToPercentageOfDay,
+} from "./helpers/timeConversions";
 
 let pointLight, helper;
 
@@ -29,8 +33,16 @@ export function addLights(scene: THREE.Scene) {
   axeHelper.position.set(-1.75, 5, 4);
   scene.add(axeHelper);
 
+  const sunrise = timeToPercentageOfDay("7:15:24 AM");
+  const sunset = timeToPercentageOfDay("8:36:56 PM");
+  console.log("SUNRISE", sunrise);
+  console.log("SUNSET", sunset);
+
+  const sunTime = Math.abs(sunrise - sunset);
+  console.log(sunTime);
+
   setInterval(() => {
-    lightsLoop();
+    lightsLoop(sunrise, sunset);
   }, 100);
 
   /* const nightPointLight = new THREE.PointLight(0xffffff, 1, 100, 1);
@@ -60,17 +72,28 @@ export function addLights(scene: THREE.Scene) {
   lightPoint.shadow.camera.far = cameraFar; */
 }
 
-function lightsLoop() {
-  const period = MILLISECONDS_IN_A_DAY;
-  const speed = 2 * Math.PI / period;
+function lightsLoop(sunrise: number, sunset: number) {
+  const sunTime = Math.abs(sunrise - sunset);
+  const speed = Math.PI / sunTime;
 
-  pointLight.position.y = Math.sin(Date.now() * speed) * 7 + 5;
-  pointLight.position.x = Math.cos(Date.now() * -speed) * 6;
-  pointLight.position.z = Math.sin(Date.now() * speed) * 2 + 10;
+  const currentTime = currentTimePercentageOfDay();
+
+  pointLight.position.y = Math.sin((currentTime - sunrise) * speed) * 7 + 5;
+  pointLight.position.x = Math.cos((currentTime - sunrise) * speed) * 6;
+  pointLight.position.z = Math.sin((currentTime - sunrise) * speed) * 2 + 10;
 
   pointLight.intensity = Math.max(0, pointLight.position.y - 5) * 500;
 
   helper.update();
 }
 
-
+/**
+ * Rappel des paramètres des fonctions sin et cos :
+ *
+ *    f(x) = A * sin(B * x + C) + D
+ *
+ * A : Amplitude
+ * B : Fréquence (Durée de la période = 2 * PI / B)
+ * C : Décalage horizontal
+ * D : Décalage vertical
+ */
