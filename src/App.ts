@@ -3,28 +3,16 @@ import Stats from "three/examples/jsm/libs/stats.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import Time from "./Time";
 import { loadModel } from "./glbImport";
-import { addLights } from "./lights";
+import { Lights } from "./lights";
 import { createCubeMap } from "./component/cubeMap";
-
-const hemiLuminousIrradiances = {
-  "0.0001 lx (Moonless Night)": 0.0001,
-  "0.002 lx (Night Airglow)": 0.002,
-  "0.5 lx (Full Moon)": 0.5,
-  "3.4 lx (City Twilight)": 3.4,
-  "50 lx (Living Room)": 50,
-  "100 lx (Very Overcast)": 100,
-  "350 lx (Office Room)": 350,
-  "400 lx (Sunrise/Sunset)": 400,
-  "1000 lx (Overcast)": 1000,
-  "18000 lx (Daylight)": 18000,
-  "50000 lx (Direct Sun)": 50000,
-};
 
 export default class App {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private time: Time;
+
+  private lights!: Lights;
 
   private controls!: OrbitControls;
   private stats!: any;
@@ -69,12 +57,13 @@ export default class App {
     fpsButton.addEventListener("click", () => {
       statsDebug === "true" ? (statsDebug = "false") : (statsDebug = "true");
       displayStatsWithLS(statsDebug);
+      this.lights.debug(statsDebug === "true");
     });
   }
 
   async initScene() {
     this.scene = new THREE.Scene();
-    addLights(this.scene);
+    this.lights = new Lights(this.scene);
 
     this.camera = new THREE.PerspectiveCamera(
       75,

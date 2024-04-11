@@ -3,108 +3,147 @@ import {
   currentTimePercentageOfDay,
   timeToPercentageOfDay,
 } from "./helpers/timeConversions";
-import { MILLISECONDS_IN_A_DAY } from "./helpers/value";
+import { hemiLuminousIrradiances, millisecondsInADay } from "./helpers/value";
 
-let sun, sunHelper, moon, moonHelper;
+export class Lights {
+  static targetPosition = new THREE.Vector3(-1.75, 5, 4);
 
-export function addLights(scene: THREE.Scene) {
-  const mapSize = 1024 * 2;
-  
-  const lightAmbient = new THREE.AmbientLight(0xffffff, 0);
-  scene.add(lightAmbient);
+  private sun: THREE.SpotLight;
+  private moon: THREE.SpotLight;
 
-  sun = new THREE.SpotLight(0xffffff, 2000);
-  sun.target.position.set(-1.75, 5, 4);
-  sun.castShadow = true;
-  sun.shadow.mapSize.width = mapSize;
-  sun.shadow.mapSize.height = mapSize;
-  sun.shadow.bias = -0.0005;
-  sun.shadow.radius = 3;
-  sun.shadow.blurSamples = 50;
-  scene.add(sun);
+  private sunHemisphere: THREE.HemisphereLight;
+  private moonHemisphere: THREE.HemisphereLight;
 
-  sunHelper = new THREE.SpotLightHelper(sun);
-  scene.add(sunHelper);
+  private sunHelper: THREE.SpotLightHelper;
+  private moonHelper: THREE.SpotLightHelper;
+  private targetHelper: THREE.AxesHelper;
 
-  moon = new THREE.SpotLight(0xa6c8ff, 800);
-  moon.position.set(0, 8, 10);
-  moon.target.position.set(-1.75, 5, 4);
-  moon.castShadow = true;
-  moon.shadow.mapSize.width = mapSize;
-  moon.shadow.mapSize.height = mapSize;
-  moon.shadow.bias = -0.0005;
-  moon.shadow.radius = 3;
-  scene.add(moon);
+  private time: number;
 
-  moonHelper = new THREE.SpotLightHelper(moon);
-  scene.add(moonHelper);
+  private scene: THREE.Scene;
 
-  const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x080820, 0);
-  scene.add(hemisphereLight);
+  constructor(scene: THREE.Scene) {
+    this.scene = scene;
 
-  const axesHelper = new THREE.AxesHelper(5);
-  axesHelper.position.set(-1.75, 5, 4);
-  scene.add(axesHelper);
+    this.sun = new THREE.SpotLight(0xffffff, 2000);
+    this.moon = new THREE.SpotLight(0xa6c8ff, 800);
 
-  const sunrise = timeToPercentageOfDay("7:15:24 AM");
-  const sunset = timeToPercentageOfDay("8:36:56 PM");
-  console.log("SUNRISE", sunrise);
-  console.log("SUNSET", sunset);
+    this.sunHelper = new THREE.SpotLightHelper(this.sun);
+    this.moonHelper = new THREE.SpotLightHelper(this.moon);
 
-  setInterval(() => {
-    lightsLoop(sunrise, sunset);
-    // instantaneousMovements();
-  }, 500);
-}
+    this.sunHemisphere = new THREE.HemisphereLight(0xffffff, 0x080820, 0);
+    this.moonHemisphere = new THREE.HemisphereLight(
+      0xa6c8ff,
+      0x080820,
+      hemiLuminousIrradiances["Moonless Night"],
+    );
+    this.targetHelper = new THREE.AxesHelper(5);
+    this.targetHelper.position.copy(Lights.targetPosition);
+    this.scene.add(this.targetHelper);
 
-function lightsLoop(sunrise: number, sunset: number) {
-  const sunTime = Math.abs(sunrise - sunset);
-  const speed = Math.PI / sunTime;
+    const sunrise = timeToPercentageOfDay("7:15:24 AM");
+    const sunset = timeToPercentageOfDay("8:36:56 PM");
+    console.log("SUNRISE", sunrise);
+    console.log("SUNSET", sunset);
 
-  const currentTime = currentTimePercentageOfDay();
+    this.configLights();
+    this.time = setTimeout(() => {
+      this.lightsLoop(sunrise, sunset);
+    }, 500);
+    this.debug(false);
+  }
 
-  const xSun = (currentTime - sunrise) * speed;
-  const xMoon = (currentTime - sunrise) * speed + Math.PI;
+  configLights() {
+    const mapSize = 1024 * 2;
 
-  sun.position.y = Math.sin(xSun) * 7 + 5;
-  sun.position.x = Math.cos(xSun) * 6;
-  sun.position.z = Math.sin(xSun) * 2 + 10;
+    const setProperties = (light: THREE.SpotLight) => {
+      light.position.set(0, -50, 0);
+      light.target.position.set(-1.75, 5, 4);
+      light.castShadow = true;
+      light.shadow.mapSize.width = mapSize;
+      light.shadow.mapSize.height = mapSize;
+      light.shadow.bias = -0.0005;
+      light.shadow.radius = 3;
+      light.shadow.blurSamples = 50;
+      this.scene.add(light);
+    };
 
-  sun.intensity = Math.max(0, sun.position.y - 5) * 500;
-  if (sun.intensity === 0) sun.visible = false;
+    setProperties(this.sun);
+    setProperties(this.moon);
 
-  sunHelper.update();
+    this.scene.add(this.sunHelper);
+    this.scene.add(this.moonHelper);
 
-  moon.position.y = Math.sin(xMoon) * 7 + 5;
-  moon.position.x = Math.cos(xMoon) * 6;
-  moon.position.z =
-    Math.sin((currentTime - sunset) * speed * 1.3 + Math.PI) * 3 + 12;
+    this.scene.add(this.sunHemisphere);
+    this.scene.add(this.moonHemisphere);
+  }
 
-  moon.intensity = Math.max(0, moon.position.y - 5) * 500;
-  if (moon.intensity === 0) moon.visible = false;
+  debug(isDebugging: boolean) {
+    this.sunHelper.visible = isDebugging;
+    this.moonHelper.visible = isDebugging;
+    this.targetHelper.visible = isDebugging;
+  }
 
-  moonHelper.update();
-}
+  lightsLoop(sunrise: number, sunset: number) {
+    const sunTime = Math.abs(sunrise - sunset);
+    const speed = Math.PI / sunTime;
 
-function instantaneousMovements() {
-  const period = MILLISECONDS_IN_A_DAY;
-  const speed = ((2 * Math.PI) / period) * 10000;
+    const currentTime = currentTimePercentageOfDay();
 
-  moon.position.y = Math.sin(Date.now() * speed + Math.PI) * 7 + 5;
-  moon.position.x = Math.cos(Date.now() * speed + Math.PI) * 6;
-  moon.position.z = Math.sin(Date.now() * (speed * 1.3) + Math.PI) * 3 + 12;
+    const xSun = (currentTime - sunrise) * speed;
+    const xMoon = (currentTime - sunrise) * speed + Math.PI;
 
-  moon.intensity = Math.max(0, moon.position.y - 5) * 500;
+    this.sun.position.y = Math.sin(xSun) * 7 + 5;
+    this.sun.position.x = Math.cos(xSun) * 6;
+    this.sun.position.z = Math.sin(xSun) * 2 + 10;
 
-  moonHelper.update();
+    this.sun.intensity = Math.max(0, this.sun.position.y - 5) * 500;
+    if (this.sun.intensity === 0) this.sun.visible = false;
 
-  sun.position.y = Math.sin(Date.now() * speed) * 7 + 5;
-  sun.position.x = Math.cos(Date.now() * speed) * 6;
-  sun.position.z = Math.sin(Date.now() * speed) * 2 + 10;
+    this.sunHelper.update();
 
-  sun.intensity = Math.max(0, sun.position.y - 5) * 500;
+    this.moon.position.y = Math.sin(xMoon) * 7 + 5;
+    this.moon.position.x = Math.cos(xMoon) * 6;
+    this.moon.position.z =
+      Math.sin((currentTime - sunset) * speed * 1.3 + Math.PI) * 3 + 12;
 
-  sunHelper.update();
+    this.moon.intensity = Math.max(0, this.moon.position.y - 5) * 100;
+    if (this.moon.intensity === 0) this.moon.visible = false;
+
+    this.moonHelper.update();
+
+    this.sunHemisphere.intensity = Math.max(
+      0,
+      Math.sin(xSun) * hemiLuminousIrradiances["Living Room"],
+    );
+  }
+
+  /*
+  instantaneousMovements() {
+    const period = millisecondsInADay;
+    const speed = ((2 * Math.PI) / period) * 10000;
+
+    moon.position.y = Math.sin(Date.now() * speed + Math.PI) * 7 + 5;
+    moon.position.x = Math.cos(Date.now() * speed + Math.PI) * 6;
+    moon.position.z = Math.sin(Date.now() * (speed * 1.3) + Math.PI) * 3 + 12;
+
+    moon.intensity = Math.max(0, moon.position.y - 5) * 100;
+
+    moonHelper.update();
+
+    sun.position.y = Math.sin(Date.now() * speed) * 7 + 5;
+    sun.position.x = Math.cos(Date.now() * speed) * 6;
+    sun.position.z = Math.sin(Date.now() * speed) * 2 + 10;
+
+    sun.intensity = Math.max(0, sun.position.y - 5) * 500;
+
+    sunHelper.update();
+
+    sunHemisphere.intensity = Math.max(
+      0,
+      Math.sin(Date.now() * speed) * hemiLuminousIrradiances["Living Room"],
+    );
+  }*/
 }
 
 /**
