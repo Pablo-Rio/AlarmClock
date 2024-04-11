@@ -5,6 +5,7 @@ import Time from "./Time";
 import { loadModel } from "./glbImport";
 import { Lights } from "./lights";
 import { createCubeMap } from "./component/cubeMap";
+import { getLocalStorageItem } from "./helpers/localStorage";
 
 export default class App {
   private renderer!: THREE.WebGLRenderer;
@@ -39,26 +40,17 @@ export default class App {
     const fpsButton = document.getElementById("fps");
     if (!fpsButton) throw new Error("FPS button not found");
 
-    let statsDebug = localStorage.getItem(itemName);
-    if (statsDebug === null) {
-      localStorage.setItem(itemName, "false");
-    }
-    const displayStatsWithLS = (bool: string | null) => {
-      if (statsDebug === "true") {
-        this.stats.dom.style.display = "block";
-        localStorage.setItem(itemName, "true");
-      } else {
-        this.stats.dom.style.display = "none";
-        localStorage.setItem(itemName, "false");
-      }
+    let statsDebug = getLocalStorageItem(itemName);
+
+    const displayStatsWithLS = (isDebugging: boolean) => {
+      localStorage.setItem(itemName, isDebugging ? "1" : "0");
+      statsDebug = !isDebugging;
+      this.stats.dom.style.display = isDebugging ? "block" : "none";
+      this.lights.debug(isDebugging);
     };
     displayStatsWithLS(statsDebug);
 
-    fpsButton.addEventListener("click", () => {
-      statsDebug === "true" ? (statsDebug = "false") : (statsDebug = "true");
-      displayStatsWithLS(statsDebug);
-      this.lights.debug(statsDebug === "true");
-    });
+    fpsButton.addEventListener("click", () => displayStatsWithLS(statsDebug));
   }
 
   async initScene() {

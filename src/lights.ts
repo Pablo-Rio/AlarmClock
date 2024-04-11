@@ -78,12 +78,6 @@ export class Lights {
     this.scene.add(this.moonHemisphere);
   }
 
-  debug(isDebugging: boolean) {
-    this.sunHelper.visible = isDebugging;
-    this.moonHelper.visible = isDebugging;
-    this.targetHelper.visible = isDebugging;
-  }
-
   lightsLoop(sunrise: number, sunset: number) {
     const sunTime = Math.abs(sunrise - sunset);
     const speed = Math.PI / sunTime;
@@ -144,6 +138,12 @@ export class Lights {
       Math.sin(Date.now() * speed) * hemiLuminousIrradiances["Living Room"],
     );
   }*/
+
+  debug(isDebugging: boolean) {
+    this.sunHelper.visible = isDebugging;
+    this.moonHelper.visible = isDebugging;
+    this.targetHelper.visible = isDebugging;
+  }
 }
 
 /**
