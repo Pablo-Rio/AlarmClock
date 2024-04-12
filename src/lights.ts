@@ -7,6 +7,7 @@ import { hemiLuminousIrradiances, millisecondsInADay } from "./helpers/value";
 
 export class Lights {
   static targetPosition = new THREE.Vector3(-1.75, 5, 4);
+  static localStorageApiKeyName = "sunHours";
 
   private sun: THREE.SpotLight;
   private moon: THREE.SpotLight;
@@ -37,19 +38,22 @@ export class Lights {
       0x080820,
       hemiLuminousIrradiances["Moonless Night"],
     );
+
     this.targetHelper = new THREE.AxesHelper(5);
     this.targetHelper.position.copy(Lights.targetPosition);
     this.scene.add(this.targetHelper);
 
-    const sunrise = timeToPercentageOfDay("7:15:24 AM");
-    const sunset = timeToPercentageOfDay("8:36:56 PM");
-    console.log("SUNRISE", sunrise);
-    console.log("SUNSET", sunset);
-
     this.configLights();
-    this.time = setTimeout(() => {
-      this.lightsLoop(sunrise, sunset);
-    }, 500);
+
+    this.fetchData().then(({ sunrise, sunset }) => {
+      this.time = setTimeout(() => {
+        this.lightsLoop(
+          timeToPercentageOfDay(sunrise),
+          timeToPercentageOfDay(sunset),
+        );
+      }, 500);
+    });
+
     this.debug(false);
   }
 
@@ -91,7 +95,7 @@ export class Lights {
     this.sun.position.x = Math.cos(xSun) * 6;
     this.sun.position.z = Math.sin(xSun) * 2 + 10;
 
-    this.sun.intensity = Math.max(0, this.sun.position.y - 5) * 500;
+    this.sun.intensity = Math.max(0, this.sun.position.y - 5) * 900;
     if (this.sun.intensity === 0) this.sun.visible = false;
 
     this.sunHelper.update();
@@ -143,6 +147,61 @@ export class Lights {
     this.sunHelper.visible = isDebugging;
     this.moonHelper.visible = isDebugging;
     this.targetHelper.visible = isDebugging;
+  }
+
+  async fetchData(): Promise<{
+    sunrise: string;
+    sunset: string;
+  }> {
+    const sunHours = localStorage.getItem(Lights.localStorageApiKeyName);
+    let sunrise: string, sunset: string, date: string;
+    if (sunHours) {
+      ({ sunrise, sunset, date } = JSON.parse(sunHours));
+      if (date === new Date().toISOString().split("T")[0].toString()) {
+        return Promise.resolve({ sunrise, sunset });
+      }
+    }
+
+    ({ sunrise, sunset } = await this.fetchApiSunriseSunset());
+    date = new Date().toISOString().split("T")[0];
+    localStorage.setItem(
+      Lights.localStorageApiKeyName,
+      JSON.stringify({ sunrise, sunset, date }),
+    );
+    return Promise.resolve({ sunrise, sunset });
+  }
+
+  async fetchApiSunriseSunset(
+    today: Date = new Date(),
+  ): Promise<{ sunrise: string; sunset: string }> {
+    const latitude = 45.85;
+    const longitude = 1.25;
+    const timezone = "Europe/Paris";
+    const params = new URLSearchParams({
+      lat: latitude.toString(),
+      lng: longitude.toString(),
+      date: today.toISOString().split("T")[0],
+      tzid: timezone,
+    });
+    const url = `https://api.sunrise-sunset.org/json?${params}`;
+
+    const data = await fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        return {
+          sunrise: data.results.sunrise,
+          sunset: data.results.sunset,
+        };
+      })
+      .catch((err) => {
+        console.error(err);
+        return {
+          sunrise: "7:15:24 AM",
+          sunset: "8:36:56 PM",
+        };
+      });
+
+    return data;
   }
 }
 
