@@ -51,6 +51,7 @@ export default class App {
       statsDebug = !isDebugging;
       this.stats.dom.style.display = isDebugging ? "block" : "none";
       this.lights.debug(isDebugging);
+      console.log(this.camera.position, this.camera.rotation);
     };
     displayStatsWithLS(statsDebug);
 
@@ -59,13 +60,29 @@ export default class App {
 
   async initScene() {
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      35,
       window.innerWidth / window.innerHeight,
       0.1,
       1000,
     );
-    this.camera.position.set(3.5, 3.2, 1.5);
-    this.camera.lookAt(0, 1, 0);
+    this.camera.position.set(0, 0, 0);
+    this.camera.rotation.set(-0.1, 0, 0);
+    this.camera.zoom = 1.1;
+    this.camera.updateProjectionMatrix();
+
+    document.addEventListener("mousemove", (event) => {
+      this.camera.position.x = event.clientX / window.innerWidth - 0.5;
+      this.camera.position.y = -event.clientY / window.innerHeight + 0.5;
+
+      console.log(this.camera.position.x, this.camera.position.y);
+      
+    });
+
+    const groupCamera = new THREE.Group();
+    groupCamera.position.set(3.506, 2.6, 0.95);
+    groupCamera.rotation.set(0, 1.3, 0);
+    groupCamera.add(this.camera);
+    this.scene.add(groupCamera);
 
     const canvas = document.getElementById("webgl");
     if (!canvas) throw new Error("Canvas not found");
@@ -82,8 +99,6 @@ export default class App {
     this.renderer.toneMappingExposure = 1;
 
     const cubeMap = await createCubeMap(this.scene, "./resources/cubeMap/");
-
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     // import glb
     const model = await loadModel("models/reveil.glb", cubeMap);
