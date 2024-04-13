@@ -29,7 +29,7 @@ export default class App {
     this.time = new Time();
 
     this.scene = new THREE.Scene();
-    this.lights = new Light(this.scene);
+    this.lights = new Light(this.scene, this.time);
     this.initScene();
     this.initStats();
     this.initListeners();

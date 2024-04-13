@@ -13,6 +13,9 @@ export default class Time {
   private hours!: string;
   private minutes!: string;
   private time!: Date;
+  private specifiedTime!: Date | undefined;
+
+  private timeInterval: number = 0;
 
   constructor() {
     this.init();
@@ -38,11 +41,23 @@ export default class Time {
     });
   }
 
+  setSpecifiedTime(time: number | undefined) {
+    if (time === undefined) {
+      this.specifiedTime = undefined;
+    } else {
+      this.specifiedTime = new Date(time);
+    }
+  }
+
   updateTime() {
     if (!this.ctx) return;
     this.ctx.clearRect(0, 0, 600, 300);
 
-    this.time = new Date();
+    if (this.specifiedTime) {
+      this.time = this.specifiedTime;
+    } else {
+      this.time = new Date();
+    }
     this.hours = this.fillWithZero(this.time.getHours());
     this.minutes = this.fillWithZero(this.time.getMinutes());
 
@@ -97,7 +112,12 @@ export default class Time {
       DISTANCE_FROM_TOP,
     );
 
-    setTimeout(() => this.updateTime(), 1000);
+    if (this.specifiedTime) {
+      clearInterval(this.timeInterval);
+      this.timeInterval = setTimeout(() => this.updateTime(), 5);
+    } else {
+      this.timeInterval = setTimeout(() => this.updateTime(), 1000);
+    }
   }
 
   fillWithZero(time: number) {

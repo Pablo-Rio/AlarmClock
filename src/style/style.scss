@@ -8,7 +8,7 @@
 }
 
 body {
-	overflow: hidden;
+  overflow: hidden;
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,7 +45,7 @@ h1 {
   bottom: 0;
   left: 0;
   font-family: Avenir, Helvetica, Arial, sans-serif;
-  z-index: 100;
+  z-index: 20;
 }
 
 #time {
@@ -54,4 +54,15 @@ h1 {
   background-color: transparent;
   border: 1px solid pink;
   display: none;
+}
+
+#timeControl {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
