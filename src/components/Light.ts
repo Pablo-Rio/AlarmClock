@@ -2,10 +2,10 @@ import * as THREE from "three";
 import {
   currentTimePercentageOfDay,
   timeToPercentageOfDay,
-} from "./helpers/timeConversions";
-import { hemiLuminousIrradiances, millisecondsInADay } from "./helpers/value";
+} from "../helpers/timeConversion";
+import { hemiLuminousIrradiances, millisecondsInADay } from "../helpers/value";
 
-export class Lights {
+export default class Light {
   static targetPosition = new THREE.Vector3(-1.75, 5, 4);
   static localStorageApiKeyName = "sunHours";
 
@@ -40,7 +40,7 @@ export class Lights {
     );
 
     this.targetHelper = new THREE.AxesHelper(5);
-    this.targetHelper.position.copy(Lights.targetPosition);
+    this.targetHelper.position.copy(Light.targetPosition);
     this.scene.add(this.targetHelper);
 
     this.configLights();
@@ -153,7 +153,7 @@ export class Lights {
     sunrise: string;
     sunset: string;
   }> {
-    const sunHours = localStorage.getItem(Lights.localStorageApiKeyName);
+    const sunHours = localStorage.getItem(Light.localStorageApiKeyName);
     let sunrise: string, sunset: string, date: string;
     if (sunHours) {
       ({ sunrise, sunset, date } = JSON.parse(sunHours));

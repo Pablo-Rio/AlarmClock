@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+import Light from "./Light";
 import Time from "./Time";
-import { loadModel } from "./glbImport";
-import { Lights } from "./lights";
-import { createCubeMap } from "./component/cubeMap";
-import { getLocalStorageItem } from "./helpers/localStorage";
+import { createCubeMap } from "../helpers/cubeMap";
+import { loadModel } from "../helpers/glbImport";
+import { getLocalStorageItem } from "../helpers/localStorage";
 
 export default class App {
   private renderer!: THREE.WebGLRenderer;
@@ -13,7 +14,7 @@ export default class App {
   private camera!: THREE.PerspectiveCamera;
   private time: Time;
 
-  private lights!: Lights;
+  private lights!: Light;
 
   private controls!: OrbitControls;
   private stats!: any;
@@ -22,10 +23,13 @@ export default class App {
 
   private textureCanvas!: THREE.CanvasTexture;
 
-  constructor(time: Time) {
+  constructor() {
     THREE.Cache.enabled = true;
 
-    this.time = time;
+    this.time = new Time();
+
+    this.scene = new THREE.Scene();
+    this.lights = new Light(this.scene);
     this.initScene();
     this.initStats();
     this.initListeners();
@@ -54,9 +58,6 @@ export default class App {
   }
 
   async initScene() {
-    this.scene = new THREE.Scene();
-    this.lights = new Lights(this.scene);
-
     this.camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -74,13 +75,13 @@ export default class App {
     });
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
-    this.renderer.setPixelRatio(window.devicePixelRatio * 0.95);
+    this.renderer.setPixelRatio(window.devicePixelRatio || 1);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
     this.renderer.toneMapping = THREE.ReinhardToneMapping;
     this.renderer.toneMappingExposure = 1;
 
-    const cubeMap = await createCubeMap(this.scene, "./background/");
+    const cubeMap = await createCubeMap(this.scene, "./resources/cubeMap/");
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -135,9 +136,15 @@ export default class App {
   }
 
   onWindowResize() {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    let size = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+
+    this.camera.aspect = size.width / size.height;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(size.width, size.height);
+    this.renderer.setPixelRatio(window.devicePixelRatio);
   }
 
   animate() {

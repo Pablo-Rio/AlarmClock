@@ -30,6 +30,7 @@ async function generateSunriseSunsetData(lat, lng, tzid) {
       tzid,
     );
     data[day] = { sunrise, sunset };
+    console.log(`Jour ${day} : ${formattedDate}`);
   }
 
   return data;
@@ -43,7 +44,7 @@ const timezone = "Europe/Paris";
 // Génération des données et écriture dans un fichier JSON
 generateSunriseSunsetData(latitude, longitude, timezone)
   .then((data) => {
-    const filename = "sunrise_sunset_data.json";
+    const filename = `sunriseSunsetData${new Date.getFullYear()}.json`;
     fs.writeFileSync(filename, JSON.stringify(data, null, 2));
     console.log("TERMINÉ");
   })

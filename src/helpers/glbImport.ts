@@ -24,6 +24,7 @@ export function loadModel(modelPath: string, cubeMap: THREE.CubeTexture): Promis
             ) {
               o.material = new THREE.MeshPhongMaterial({
                 color: o.material.color,
+                side: THREE.DoubleSide,
                 envMap: cubeMap,
                 combine: THREE.MixOperation,
                 reflectivity: Math.abs(o.material.roughness - 1),
