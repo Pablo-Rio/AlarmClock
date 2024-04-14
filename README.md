@@ -1,23 +1,11 @@
-# vite-threejs-ts-starter
+# Alarm Clock, a ThreeJS project
 
-A basic [THREE.js](https://threejs.org/) project in [TypeScript](https://www.typescriptlang.org/) with [Vite](https://vitejs.dev/). Includes OrbitControls, Stats and basic shadows.
+A small training project to learn how to better manage shadows, lights and performance. First use of Typescript with Threejs.
 
-View demo hosted on CloudFlare pages: [vite-threejs-ts-starter.pages.dev](https://vite-threejs-ts-starter.pages.dev/)
+This project uses the [sunrise-sunset](https://sunrise-sunset.org/api) api.
 
-<img src="https://github.com/defmech/vite-threejs-ts-starter/blob/main/resources/cube_1.png?raw=true" width="504" height="457">
+The lights are based on the time of sunset and sunrise in Limoges, France.
 
-Press `e` key to export canvas as `PNG` in a new browser tab.
+<img src="https://github.com/Pablo-Rio/AlarmClock/blob/main/public/resources/screenDay.png?raw=true">
 
-## Getting started
-
-Install dependencies.
-`npm install`
-
-Start development server.
-`npm run start`
-
-## Alternate Demos
-
-Toggle commented out code in `main.ts` to run the `Shader.ts` demo. Based on the `THREE.js` example from [Book Of Shaders](https://thebookofshaders.com/04/).
-
-<img src="https://github.com/defmech/vite-threejs-ts-starter/blob/main/resources/shader_1.png?raw=true" width="512" height="512">
+<img src="https://github.com/Pablo-Rio/AlarmClock/blob/main/public/resources/screenNight.png?raw=true">

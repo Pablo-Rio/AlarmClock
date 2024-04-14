@@ -1,5 +1,5 @@
-import "./style/reset.scss";
-import "./style/style.scss";
+import "./style/reset.css";
+import "./style/style.css";
 
 import App from "./components/App";
 
