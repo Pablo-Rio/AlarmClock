@@ -51,7 +51,6 @@ export default class App {
       statsDebug = !isDebugging;
       this.stats.dom.style.display = isDebugging ? "block" : "none";
       this.lights.debug(isDebugging);
-      console.log(this.camera.position, this.camera.rotation);
     };
     displayStatsWithLS(statsDebug);
 
@@ -73,9 +72,6 @@ export default class App {
     document.addEventListener("mousemove", (event) => {
       this.camera.position.x = event.clientX / window.innerWidth - 0.5;
       this.camera.position.y = -event.clientY / window.innerHeight + 0.5;
-
-      console.log(this.camera.position.x, this.camera.position.y);
-      
     });
 
     const groupCamera = new THREE.Group();

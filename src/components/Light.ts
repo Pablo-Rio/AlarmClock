@@ -21,7 +21,6 @@ export default class Light {
   private targetHelper: THREE.AxesHelper;
 
   private date: number | undefined;
-  private time: number;
   private timeService: Time;
 
   private scene: THREE.Scene;
@@ -51,7 +50,7 @@ export default class Light {
     this.date = undefined;
 
     this.fetchData().then(({ sunrise, sunset }) => {
-      this.time = setInterval(() => {
+      setInterval(() => {
         this.lightsLoop(
           timeToPercentageOfDay(sunrise),
           timeToPercentageOfDay(sunset),
@@ -59,9 +58,9 @@ export default class Light {
         );
         // this.instantaneousMovements();
       }, 50);
-      this.lightControls(sunrise, sunset);
     });
 
+    this.lightControls();
     this.debug(false);
   }
 
@@ -149,14 +148,17 @@ export default class Light {
     );
   }
 
-  lightControls(sunrise: string, sunset: string) {
+  lightControls() {
     const rewind = document.getElementById("rewind");
     const accelerate = document.getElementById("accelerate");
     const live = document.getElementById("live");
-    
+    let currentlyLive = true;
+
     live?.addEventListener("click", () => {
       this.timeService.setSpecifiedTime(undefined);
       this.date = undefined;
+      currentlyLive = true;
+      live.classList.add("hidden");
     });
 
     let t: number;
@@ -175,6 +177,11 @@ export default class Light {
       this.date += ((50000 * 5) / t) * 10 * direction;
       this.timeService.setSpecifiedTime(this.date);
 
+      if (currentlyLive) {
+        currentlyLive = false;
+        live?.classList.remove("hidden");
+      }
+
       changeTimer();
       interval = setInterval(() => {
         timeout(direction);
@@ -182,20 +189,33 @@ export default class Light {
     };
 
     rewind?.addEventListener("mousedown", () => {
+      rewind?.classList.add("pressedLeft");
       t = 200;
       timeout(-1);
     });
 
     accelerate?.addEventListener("mousedown", () => {
+      accelerate?.classList.add("pressedRight");
       t = 200;
       timeout(1);
     });
 
-    rewind?.addEventListener("mouseup", () => {
-      clearInterval(interval);
-    });
+    const addMouseUpLeaveEvent = (element: HTMLElement) => {
+      element.addEventListener("mouseup", handleMouseUpLeave);
+      element.addEventListener("mouseleave", handleMouseUpLeave);
+    };
 
-    accelerate?.addEventListener("mouseup", () => clearInterval(interval));
+    const handleMouseUpLeave = (event: MouseEvent) => {
+      const element = event.currentTarget as HTMLElement;
+      element.classList.remove("pressedLeft");
+      element.classList.remove("pressedRight");
+      clearInterval(interval);
+    };
+
+    if (rewind && accelerate) {
+      addMouseUpLeaveEvent(rewind);
+      addMouseUpLeaveEvent(accelerate);
+    }
   }
 
   debug(isDebugging: boolean) {

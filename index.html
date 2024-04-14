@@ -10,9 +10,31 @@
     <canvas id="time"></canvas>
     <button id="fps">Stats</button>
     <div id="timeControl">
-      <button id="rewind">Rewind</button>
-      <button id="live">Live</button>
-      <button id="accelerate">Accelerate</button>
+      <button id="rewind">
+        <svg
+          width="94"
+          height="94"
+          viewBox="0 0 94 94"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M12.6899 46.765L46.9999 26.32V67.21L12.6899 46.765Z" />
+          <path d="M47 46.765L81.78 26.32V67.21L47 46.765Z" />
+        </svg>
+      </button>
+      <button id="live" class="hidden">back to live<div id="circle"></div></button>
+      <button id="accelerate">
+        <svg
+          width="94"
+          height="94"
+          viewBox="0 0 94 94"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M12.6899 46.765L46.9999 26.32V67.21L12.6899 46.765Z" />
+          <path d="M47 46.765L81.78 26.32V67.21L47 46.765Z" />
+        </svg>
+      </button>
     </div>
     <canvas id="webgl"></canvas>
     <script type="module" src="/src/main.ts"></script>
