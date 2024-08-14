@@ -1,19 +1,23 @@
 /* frozencrystal - latin */
 @font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-display: swap;
+  /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
   font-family: "frozencrystal";
   font-style: normal;
   font-weight: 400;
-  src: url("../fonts/frozencrystal.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url("../fonts/frozencrystal.woff2") format("woff2");
+  /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 
 /* inter-600 - latin */
 @font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-display: swap;
+  /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
   font-family: "Inter";
   font-style: normal;
   font-weight: 600;
-  src: url("../fonts/inter-v13-latin-600.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url("../fonts/inter-v13-latin-600.woff2") format("woff2");
+  /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 
 body {
@@ -111,17 +115,11 @@ h1 {
     &#live {
       padding: 10px;
       border-radius: 4px;
-      font:
-        600 1em "Inter",
-        sans-serif;
+      font: 600 1em "Inter", sans-serif;
       position: relative;
 
       &:hover {
-        background: linear-gradient(
-          180deg,
-          transparent 30%,
-          rgba(255, 255, 255, 0.5)
-        );
+        background-color: linear-gradient(180deg, transparent 30%, rgba(255, 255, 255, 0.5));
         border-bottom: 2px solid white;
         text-shadow: 0 2px 5px black;
       }
@@ -152,9 +150,11 @@ h1 {
   0% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
+
   100% {
     opacity: 1;
   }
@@ -165,9 +165,11 @@ h1 {
     transform: scale(1);
     filter: drop-shadow(0 0 0px white);
   }
+
   10% {
     transform: scale(1.2);
   }
+
   100% {
     transform: scale(0.6);
     filter: drop-shadow(0 0 15px white);
@@ -179,9 +181,11 @@ h1 {
     transform: scale(1) rotate(180deg);
     filter: drop-shadow(0 0 0px white);
   }
+
   10% {
     transform: scale(1.2) rotate(180deg);
   }
+
   100% {
     transform: scale(0.6) rotate(180deg);
     filter: drop-shadow(0 0 15px white);

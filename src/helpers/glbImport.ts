@@ -10,24 +10,28 @@ export function loadModel(modelPath: string, cubeMap: THREE.CubeTexture): Promis
         const model = gltf.scene;
         model.traverse((o) => {
           if ((o as THREE.Mesh).isMesh) {
-            o.castShadow = true;
-            o.receiveShadow = true;
-            o.material.needsUpdate = true;
+            // Cast o to Mesh
+            
+            const mesh = o as THREE.Mesh;
+            const material = mesh.material as THREE.MeshStandardMaterial;
+            
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
             // (o.material as THREE.MeshStandardMaterial).color.convertSRGBToLinear();
             /* if (o.material.name.startsWith("IMG")) {
               (o.material as THREE.MeshStandardMaterial).color.addScalar(0);
             } */
 
             if (
-              !o.material.name.startsWith("IMG") &&
-              !o.material.name.startsWith("ALPHA")
+              !material.name.startsWith("IMG") &&
+              !material.name.startsWith("ALPHA")
             ) {
-              o.material = new THREE.MeshPhongMaterial({
-                color: o.material.color,
+              mesh.material = new THREE.MeshPhongMaterial({
+                color: material.color,
                 side: THREE.DoubleSide,
                 envMap: cubeMap,
                 combine: THREE.MixOperation,
-                reflectivity: Math.abs(o.material.roughness - 1),
+                reflectivity: Math.abs(material.roughness - 1),
               });
             }
           }

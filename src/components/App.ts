@@ -7,12 +7,16 @@ import Time from "./Time";
 import { createCubeMap } from "../helpers/cubeMap";
 import { loadModel } from "../helpers/glbImport";
 import { getLocalStorageItem } from "../helpers/localStorage";
+import { isMobile } from "../helpers/isMobile";
 
 export default class App {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private time: Time;
+
+  private targetRotationY!: number;
+  private targetRotationZ!: number;
 
   private lights!: Light;
 
@@ -22,6 +26,8 @@ export default class App {
   private plane!: THREE.Mesh;
 
   private textureCanvas!: THREE.CanvasTexture;
+
+  private static readonly SMOOTH_FACTOR = 0.02;
 
   constructor() {
     THREE.Cache.enabled = true;
@@ -64,21 +70,25 @@ export default class App {
       0.1,
       1000,
     );
-    this.camera.position.set(0, 0, 0);
-    this.camera.rotation.set(-0.1, 0, 0);
+    this.camera.position.set(5, 0, 0);
+    if (isMobile()) this.camera.position.set(8, 0, 0);
     this.camera.zoom = 1.1;
     this.camera.updateProjectionMatrix();
 
+    const groupCamera = new THREE.Group();
+    groupCamera.position.set(-3, 2.6, 0);
+    groupCamera.rotation.set(0, -0.36, 0);
+
+    this.targetRotationY = groupCamera.rotation.y;
+    this.targetRotationZ = groupCamera.rotation.z;
+
     document.addEventListener("mousemove", (event) => {
-      this.camera.position.x = event.clientX / window.innerWidth - 0.5;
-      this.camera.position.y = -event.clientY / window.innerHeight + 0.5;
+      this.targetRotationY = -event.clientX / window.innerWidth / 2 - 0.1;
+      this.targetRotationZ = event.clientY / window.innerHeight / 1.5 - 0.3;
     });
 
-    const groupCamera = new THREE.Group();
-    groupCamera.position.set(3.506, 2.6, 0.95);
-    groupCamera.rotation.set(0, 1.3, 0);
-    groupCamera.add(this.camera);
     this.scene.add(groupCamera);
+    groupCamera.add(this.camera);
 
     const canvas = document.getElementById("webgl");
     if (!canvas) throw new Error("Canvas not found");
@@ -118,7 +128,7 @@ export default class App {
     this.scene.add(this.plane);
 
     // Init animation
-    this.animate();
+    this.animate(groupCamera);
   }
 
   initListeners() {
@@ -158,12 +168,25 @@ export default class App {
     this.renderer.setPixelRatio(window.devicePixelRatio);
   }
 
-  animate() {
+  animate(groupCamera: THREE.Group) {
     requestAnimationFrame(() => {
-      this.animate();
+      this.animate(groupCamera);
     });
 
     this.textureCanvas.needsUpdate = true;
+
+    groupCamera.rotation.y = THREE.MathUtils.lerp(
+      groupCamera.rotation.y,
+      this.targetRotationY,
+      App.SMOOTH_FACTOR,
+    );
+    groupCamera.rotation.z = THREE.MathUtils.lerp(
+      groupCamera.rotation.z,
+      this.targetRotationZ,
+      App.SMOOTH_FACTOR,
+    );
+
+    this.camera.lookAt(groupCamera.position);
 
     if (this.stats) this.stats.update();
 

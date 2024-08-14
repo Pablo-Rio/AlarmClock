@@ -4,7 +4,7 @@
   "scripts": {
     "start": "vite --host",
     "build": "tsc && vite build",
-    "serve": "vite preview --host",
+    "preview": "vite preview --host",
     "pretty": "prettier --write ./* --end-of-line crlf"
   },
   "devDependencies": {
